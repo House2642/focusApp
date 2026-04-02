@@ -1,19 +1,21 @@
-export const OPENING_QUESTIONS = {
-  anxiety: "What's the thought that keeps circling back?",
+export type Trigger = 'anxiety' | 'avoiding' | 'bored';
+
+export const OPENING_QUESTIONS: Record<Trigger, string> = {
+  anxiety:  "What's the thought that keeps circling back?",
   avoiding: "What's the thing you've been putting off — and what's underneath that?",
-  bored: "What are you actually waiting for right now?"
-}
+  bored:    "What are you actually waiting for right now?",
+};
 
-export const FALLBACK_COMMITMENT = "Take one breath and name what you're actually feeling."
+export const FALLBACK_COMMITMENT = "Take one breath and name what you're actually feeling.";
 
-export function buildSystemPrompt(trigger, questionIndex) {
+export function buildSystemPrompt(trigger: Trigger, questionIndex: number): string {
   const triggerContext = {
-    anxiety: 'The user is experiencing anxiety or FOMO — they feel caught in a loop of worry or comparison.',
+    anxiety:  'The user is experiencing anxiety or FOMO — they feel caught in a loop of worry or comparison.',
     avoiding: 'The user is avoiding something difficult — there is likely fear, overwhelm, or perfectionism underneath.',
-    bored: 'The user is bored and probably procrastinating — they are waiting for motivation that will not come on its own.'
-  }[trigger]
+    bored:    'The user is bored and probably procrastinating — they are waiting for motivation that will not come on its own.',
+  }[trigger];
 
-  const isLastQuestion = questionIndex >= 2
+  const isLastQuestion = questionIndex >= 2;
 
   return `You are a calm, warm presence helping someone briefly reconnect with what's real. They opened this app mid-scroll or mid-avoidance spiral.
 
@@ -29,15 +31,5 @@ Rules:
 ${isLastQuestion ? `
 - This is your final response. After your question or reflection, end with exactly this format on a new line:
   [COMMITMENT: <one micro-action, specific and doable in 30 seconds, e.g. "Write one bad sentence" or "Say the fear out loud">]
-- The commitment should be tiny and concrete. Not motivational fluff.` : ''}`.trim()
-}
-
-export const TRIGGER_MAP = {
-  scroll:   'bored',
-  writing:  'avoiding',
-  anxiety:  'anxiety',
-  work:     'avoiding',
-  focus:    'anxiety',
-  avoidance: 'avoiding',
-  bored:    'bored'
+- The commitment should be tiny and concrete. Not motivational fluff.` : ''}`.trim();
 }
