@@ -3,12 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './styles/global.css'
 import App from './App.jsx'
 
-function setVh() {
-  const h = window.visualViewport?.height ?? window.innerHeight
-  document.documentElement.style.setProperty('--vh', `${h}px`)
+function onViewportResize() {
+  const vv = window.visualViewport
+  if (!vv) return
+  const bottom = window.innerHeight - vv.offsetTop - vv.height
+  document.getElementById('root').style.bottom = `${bottom}px`
 }
-setVh()
-window.visualViewport?.addEventListener('resize', setVh)
+window.visualViewport?.addEventListener('resize', onViewportResize)
+window.visualViewport?.addEventListener('scroll', onViewportResize)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
