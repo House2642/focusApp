@@ -5,9 +5,12 @@ export default function CuriousScreen({ messages, questionIndex, isLoading, erro
   const [text, setText] = useState('')
   const inputRef = useRef(null)
   const bottomRef = useRef(null)
+  const mountedRef = useRef(false)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const behavior = mountedRef.current ? 'smooth' : 'instant'
+    mountedRef.current = true
+    bottomRef.current?.scrollIntoView({ behavior })
   }, [messages, isLoading])
 
   useEffect(() => {
