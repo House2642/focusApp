@@ -5,7 +5,6 @@
   align-items: center;
   min-height: 100dvh;
   padding: 2.5rem 1.75rem;
-  padding-top: max(4.5rem, calc(1rem + env(safe-area-inset-top)));
   padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
   animation: fadeUp 0.4s ease both;
 }

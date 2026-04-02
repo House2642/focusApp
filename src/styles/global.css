@@ -40,6 +40,8 @@ body {
   min-height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
+  /* Handle status bar for standalone PWA (black-translucent) */
+  padding-top: env(safe-area-inset-top);
 }
 
 button {
