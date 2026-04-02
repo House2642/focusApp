@@ -4,13 +4,14 @@ import styles from '../styles/CuriousScreen.module.css'
 export default function CuriousScreen({ messages, questionIndex, isLoading, error, submitAnswer }) {
   const [text, setText] = useState('')
   const inputRef = useRef(null)
-
-  const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant')
+  const bottomRef = useRef(null)
 
   useEffect(() => {
-    if (!isLoading) {
-      inputRef.current?.focus()
-    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isLoading])
+
+  useEffect(() => {
+    if (!isLoading) inputRef.current?.focus()
   }, [isLoading, questionIndex])
 
   function handleSubmit(e) {
@@ -29,20 +30,22 @@ export default function CuriousScreen({ messages, questionIndex, isLoading, erro
 
   return (
     <div className={styles.screen}>
-      <div className={styles.questionArea}>
-        {lastAssistantMessage && (
-          <p className={styles.question} key={questionIndex}>
-            {lastAssistantMessage.content}
-          </p>
-        )}
+      <div className={styles.messages}>
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={msg.role === 'assistant' ? styles.assistantMsg : styles.userMsg}
+          >
+            {msg.content}
+          </div>
+        ))}
         {isLoading && (
           <div className={styles.thinking}>
             <span /><span /><span />
           </div>
         )}
-        {error && (
-          <p className={styles.error}>{error}</p>
-        )}
+        {error && <p className={styles.error}>{error}</p>}
+        <div ref={bottomRef} />
       </div>
 
       <form className={styles.inputArea} onSubmit={handleSubmit}>
@@ -53,7 +56,7 @@ export default function CuriousScreen({ messages, questionIndex, isLoading, erro
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Just say what's true…"
-          rows={3}
+          rows={1}
           disabled={isLoading}
         />
         <button
