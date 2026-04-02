@@ -61,6 +61,22 @@
   align-self: flex-start;
 }
 
+.ctaBar {
+  width: 100%;
+  padding: 1.25rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 1rem;
+  text-align: center;
+  flex-shrink: 0;
+  transition: opacity 150ms ease;
+}
+
+.ctaBar:active {
+  opacity: 0.85;
+}
+
 .inputArea {
   display: flex;
   align-items: flex-end;

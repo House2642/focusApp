@@ -7,6 +7,7 @@ const INITIAL_STATE = {
   messages: [],
   questionIndex: 0,
   commitment: null,
+  isDone: false,
   isLoading: false,
   error: null
 }
@@ -71,7 +72,8 @@ export default function useReground() {
       if (data.isDone) {
         setState(s => ({
           ...s,
-          screen: 'reentry',
+          screen: 'curious',
+          isDone: true,
           messages: [...nextMessages, { role: 'assistant', content: data.message }],
           commitment: data.commitment,
           questionIndex: nextIndex,
@@ -94,6 +96,10 @@ export default function useReground() {
     }
   }
 
+  function proceed() {
+    setState(s => ({ ...s, screen: 'reentry' }))
+  }
+
   function restart() {
     setState(INITIAL_STATE)
   }
@@ -102,6 +108,7 @@ export default function useReground() {
     ...state,
     selectTrigger,
     submitAnswer,
+    proceed,
     restart
   }
 }
