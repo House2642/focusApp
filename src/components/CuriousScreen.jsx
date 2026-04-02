@@ -1,91 +1,59 @@
-import { useState, useEffect, useRef } from 'react'
+import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
+import {
+  MainContainer,
+  ChatContainer,
+  MessageList,
+  Message,
+  MessageInput,
+  TypingIndicator
+} from '@chatscope/chat-ui-kit-react'
 import styles from '../styles/CuriousScreen.module.css'
 
-export default function CuriousScreen({ messages, questionIndex, isLoading, error, submitAnswer, isDone, proceed }) {
-  const [text, setText] = useState('')
-  const inputRef = useRef(null)
-  const bottomRef = useRef(null)
-  const mountedRef = useRef(false)
+export default function CuriousScreen({ messages, isLoading, error, submitAnswer, isDone, proceed }) {
+  const csMessages = messages.map((msg, i) => ({
+    message: msg.content,
+    sender: msg.role === 'assistant' ? 'assistant' : 'user',
+    direction: msg.role === 'assistant' ? 'incoming' : 'outgoing',
+    position: 'single',
+    id: i
+  }))
 
-  useEffect(() => {
-    const behavior = mountedRef.current ? 'smooth' : 'instant'
-    mountedRef.current = true
-    bottomRef.current?.scrollIntoView({ behavior })
-  }, [messages, isLoading])
-
-  useEffect(() => {
-    if (!isLoading) inputRef.current?.focus()
-  }, [isLoading, questionIndex])
-
-  useEffect(() => {
-    function onViewportResize() {
-      bottomRef.current?.scrollIntoView({ behavior: 'instant' })
-    }
-    window.visualViewport?.addEventListener('resize', onViewportResize)
-    return () => window.visualViewport?.removeEventListener('resize', onViewportResize)
-  }, [])
-
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSend(_, text) {
     if (!text.trim() || isLoading) return
     submitAnswer(text)
-    setText('')
-  }
-
-  function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(e)
-    }
   }
 
   return (
     <div className={styles.screen}>
-      <div className={styles.messages}>
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={msg.role === 'assistant' ? styles.assistantMsg : styles.userMsg}
+      <MainContainer className={styles.mainContainer}>
+        <ChatContainer>
+          <MessageList
+            typingIndicator={isLoading ? <TypingIndicator /> : null}
+            className={styles.messageList}
           >
-            {msg.content}
-          </div>
-        ))}
-        {isLoading && (
-          <div className={styles.thinking}>
-            <span /><span /><span />
-          </div>
-        )}
-        {error && <p className={styles.error}>{error}</p>}
-        <div ref={bottomRef} />
-      </div>
+            {csMessages.map(msg => (
+              <Message key={msg.id} model={msg} className={styles.message} />
+            ))}
+          </MessageList>
 
-      {isDone ? (
-        <button className={styles.ctaBar} onClick={proceed}>
-          What else could I be doing with my time?
-        </button>
-      ) : (
-        <form className={styles.inputArea} onSubmit={handleSubmit}>
-          <textarea
-            ref={inputRef}
-            className={styles.input}
-            value={text}
-            onChange={e => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Just say what's true…"
-            rows={1}
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            className={styles.sendButton}
-            disabled={!text.trim() || isLoading}
-          >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 3L10 17M10 3L4 9M10 3L16 9" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </form>
-      )}
+          {isDone ? (
+            <div as="MessageInput">
+              <button className={styles.ctaBar} onClick={proceed}>
+                What else could I be doing with my time?
+              </button>
+            </div>
+          ) : (
+            <MessageInput
+              placeholder="Just say what's true…"
+              onSend={handleSend}
+              disabled={isLoading}
+              attachButton={false}
+              className={styles.messageInput}
+              autoFocus
+            />
+          )}
+        </ChatContainer>
+      </MainContainer>
     </div>
   )
 }
