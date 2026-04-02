@@ -17,6 +17,14 @@ export default function CuriousScreen({ messages, questionIndex, isLoading, erro
     if (!isLoading) inputRef.current?.focus()
   }, [isLoading, questionIndex])
 
+  useEffect(() => {
+    function onViewportResize() {
+      bottomRef.current?.scrollIntoView({ behavior: 'instant' })
+    }
+    window.visualViewport?.addEventListener('resize', onViewportResize)
+    return () => window.visualViewport?.removeEventListener('resize', onViewportResize)
+  }, [])
+
   function handleSubmit(e) {
     e.preventDefault()
     if (!text.trim() || isLoading) return
