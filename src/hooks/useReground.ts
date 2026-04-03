@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { OPENING_QUESTIONS, FALLBACK_COMMITMENT, Trigger } from '../lib/prompts';
+import Anthropic from '@anthropic-ai/sdk';
+import { OPENING_QUESTIONS, FALLBACK_COMMITMENT, buildSystemPrompt, Trigger } from '../lib/prompts';
 import { RegroundState, Message } from '../lib/types';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
+const client = new Anthropic({
+  apiKey: process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '',
+  dangerouslyAllowBrowser: true,
+});
 
 const INITIAL_STATE: RegroundState = {
   screen: 'caught',
@@ -15,18 +19,31 @@ const INITIAL_STATE: RegroundState = {
   error: null,
 };
 
-async function fetchNextQuestion(
+function extractCommitment(text: string): string | null {
+  const match = text.match(/\[COMMITMENT:\s*(.+?)\]/i);
+  return match ? match[1].trim() : null;
+}
+
+async function askClaude(
   trigger: Trigger,
   messages: Message[],
   questionIndex: number
 ): Promise<{ message: string; commitment: string | null; isDone: boolean }> {
-  const res = await fetch(`${API_URL}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ trigger, messages, questionIndex }),
+  const systemPrompt = buildSystemPrompt(trigger, questionIndex);
+
+  const response = await client.messages.create({
+    model: 'claude-haiku-4-5',
+    max_tokens: 256,
+    system: systemPrompt,
+    messages: messages.map(m => ({ role: m.role, content: m.content })),
   });
-  if (!res.ok) throw new Error('API error');
-  return res.json();
+
+  const fullText = response.content[0].type === 'text' ? response.content[0].text : '';
+  const commitment = extractCommitment(fullText) || (questionIndex >= 2 ? FALLBACK_COMMITMENT : null);
+  const message = fullText.replace(/\[COMMITMENT:.*?\]/gi, '').trim();
+  const isDone = questionIndex >= 2 || commitment !== null;
+
+  return { message, commitment, isDone };
 }
 
 export default function useReground() {
@@ -52,7 +69,7 @@ export default function useReground() {
     setState(s => ({ ...s, messages: nextMessages, isLoading: true, error: null }));
 
     try {
-      const data = await fetchNextQuestion(state.trigger, nextMessages, nextIndex);
+      const data = await askClaude(state.trigger, nextMessages, nextIndex);
 
       if (data.isDone) {
         setState(s => ({
